@@ -1,9 +1,11 @@
 import { BACKEND_URL } from '$env/static/private';
-import { errorCode, toTableInfo } from '$lib/helpers';
+import { toTableInfo } from '$lib/helpers';
 import type { TableColumnInfo } from '$lib/types/table';
-import { error, type Actions } from '@sveltejs/kit';
+import { type Actions, fail } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { HttpResult } from '$lib/types/result';
+import { superValidate } from 'sveltekit-superforms/client';
+import { tableSchema } from '$lib/schemas/table';
 
 export const load: PageServerLoad = async ({ fetch }) => {
 	const response = await fetch(`${BACKEND_URL}/tables`, {
@@ -15,12 +17,13 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	const tables = toTableInfo(tableColumns);
 
 	return {
+		form: await superValidate(tableSchema),
 		tables
 	};
 };
 
-const bar = {
-	name: 'bar',
+const dummyTable = {
+	name: 'foo',
 	columns: [
 		{
 			name: 'id',
@@ -37,11 +40,73 @@ const bar = {
 	]
 };
 
+const newRow = {
+	table: 'foo',
+	columns: [
+		{
+			name: 'name',
+			value: 'Hello, World!'
+		}
+	]
+};
+
 export const actions: Actions = {
-	create: async ({ fetch }) => {
-		const response = await fetch(`${BACKEND_URL}/tables`, {
+	create_table: async (event) => {
+		const form = await superValidate(event, tableSchema);
+
+		let result: HttpResult<TableColumnInfo[]> = {
+			success: false,
+			code: 500,
+			message: 'Unexpected error.'
+		};
+
+		if (!form.valid) {
+			result.message = 'Invalid form data.';
+			result.code = 400;
+
+			return fail(400, {
+				form,
+				result
+			});
+		}
+
+		dummyTable.name = form.data.name;
+
+		console.log(dummyTable);
+
+		const response = await event.fetch(`${BACKEND_URL}/tables`, {
 			method: 'POST',
-			body: JSON.stringify(bar),
+			body: JSON.stringify(dummyTable),
+			headers: {
+				'content-type': 'application/json'
+			}
+		});
+
+		result = {
+			success: response.ok,
+			code: response.status,
+			data: response.ok ? await response.json() : undefined,
+			message: response.ok ? `Sucessfully created table: ${dummyTable.name}` : await response.text()
+		};
+
+		console.log(result.message);
+
+		if (!result.success) {
+			return fail(result.code, {
+				form,
+				result
+			});
+		}
+
+		return {
+			form,
+			result
+		};
+	},
+	insert_row: async ({ fetch }) => {
+		const response = await fetch(`${BACKEND_URL}/rows`, {
+			method: 'POST',
+			body: JSON.stringify(newRow),
 			headers: {
 				'content-type': 'application/json'
 			}
@@ -51,31 +116,19 @@ export const actions: Actions = {
 			success: response.ok,
 			code: response.status,
 			data: response.ok ? await response.json() : undefined,
-			message: response.ok ? `Sucessfully created table: ${bar.name}` : await response.text()
+			message: response.ok ? `Sucessfully created row on ${newRow.table}` : await response.text()
 		};
 
+		console.log(result);
+
 		if (!result.success) {
-			error(errorCode(result.code), result.message);
+			return fail(result.code, {
+				result
+			});
 		}
 
 		return {
 			result
-		};
-
-		if (!response.ok) {
-			return {
-				success: false,
-				code: response.status,
-				message: `Sucessfully created table: ${bar.name}`,
-				data: null
-			};
-		}
-
-		return {
-			success: true,
-			code: response.status,
-			message: `Sucessfully created table: ${bar.name}`,
-			data: null
 		};
 	}
 };

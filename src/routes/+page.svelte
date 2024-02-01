@@ -1,57 +1,29 @@
 <script lang="ts">
-	import { applyAction, enhance } from '$app/forms';
-	import type { RequestStatus } from '$lib/types/result';
+	import * as Sheet from '$lib/components/ui/sheet';
 	import { Button } from '$lib/components/ui/button';
 	import * as Table from '$lib/components/ui/table';
-	import { toast } from 'svelte-sonner';
-	import { resultMessage } from '$lib/helpers.js';
+	import { TableForm } from '$lib/components/forms';
 
 	export let data;
-
-	let requestStatus: RequestStatus = {
-		type: 'none',
-		message: 'N/A'
-	};
 </script>
 
-<form
-	action="?/create"
-	method="post"
-	use:enhance={() => {
-		return async ({ result, update }) => {
-			requestStatus.type = 'pending';
+<Sheet.Root>
+	<Sheet.Trigger asChild let:builder>
+		<Button builders={[builder]}>New</Button>
+	</Sheet.Trigger>
+	<Sheet.Content>
+		<Sheet.Header>
+			<Sheet.Title>New Table</Sheet.Title>
+			<Sheet.Description>Description here</Sheet.Description>
+		</Sheet.Header>
 
-			console.log(result);
+		<TableForm form={data.form} />
+	</Sheet.Content>
+</Sheet.Root>
 
-			if (result.type === 'success') {
-				await update();
-
-				requestStatus = {
-					type: 'success',
-					message: resultMessage(result.data.result.message)
-				};
-			} else if (result.type === 'error') {
-				requestStatus = {
-					type: 'failure',
-					message: resultMessage(result.error.message)
-				};
-
-				console.log(requestStatus.message);
-			} else {
-				requestStatus = {
-					type: 'unknown',
-					message: 'Unknown status'
-				};
-
-				console.log(requestStatus.message);
-			}
-
-			toast(requestStatus.message);
-		};
-	}}
->
-	<Button type="submit">New</Button>
-</form>
+<!-- <form action="?/insert_row" method="post" use:enhance={insertRow}> -->
+<!-- 	<Button type="submit">New Row</Button> -->
+<!-- </form> -->
 
 <Table.Root>
 	<Table.Header>
