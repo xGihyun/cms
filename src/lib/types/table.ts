@@ -1,7 +1,9 @@
 import z from 'zod';
-import { tableColumnInfo, tableSchema } from '$lib/schemas/table';
+import { columnSchema, tableColumnInfo, tableSchema } from '$lib/schemas/table';
 
 export type TableSchema = typeof tableSchema;
+
+export type Column = z.infer<typeof columnSchema>;
 
 export type TableInfo = {
 	name: string;

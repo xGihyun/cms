@@ -5,7 +5,7 @@ import { type Actions, fail } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { HttpResult } from '$lib/types/result';
 import { superValidate } from 'sveltekit-superforms/client';
-import { tableSchema } from '$lib/schemas/table';
+import { columnSchema, tableSchema } from '$lib/schemas/table';
 
 export const load: PageServerLoad = async ({ fetch }) => {
 	const response = await fetch(`${BACKEND_URL}/tables`, {
@@ -13,7 +13,6 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	});
 
 	const tableColumns: TableColumnInfo[] = await response.json();
-
 	const tables = toTableInfo(tableColumns);
 
 	return {
@@ -22,37 +21,12 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	};
 };
 
-const dummyTable = {
-	name: 'foo',
-	columns: [
-		{
-			name: 'id',
-			data_type: 'uuid',
-			default: 'gen_random_uuid()',
-			is_nullable: false
-		},
-		{
-			name: 'name',
-			data_type: 'text',
-			default: 'N/A',
-			is_nullable: false
-		}
-	]
-};
-
-const newRow = {
-	table: 'foo',
-	columns: [
-		{
-			name: 'name',
-			value: 'Hello, World!'
-		}
-	]
-};
-
 export const actions: Actions = {
 	create_table: async (event) => {
 		const form = await superValidate(event, tableSchema);
+
+		console.log('CREATE TABLE');
+		console.log(form.data);
 
 		let result: HttpResult<TableColumnInfo[]> = {
 			success: false,
@@ -70,13 +44,9 @@ export const actions: Actions = {
 			});
 		}
 
-		dummyTable.name = form.data.name;
-
-		console.log(dummyTable);
-
 		const response = await event.fetch(`${BACKEND_URL}/tables`, {
 			method: 'POST',
-			body: JSON.stringify(dummyTable),
+			body: JSON.stringify(form.data),
 			headers: {
 				'content-type': 'application/json'
 			}
@@ -86,7 +56,7 @@ export const actions: Actions = {
 			success: response.ok,
 			code: response.status,
 			data: response.ok ? await response.json() : undefined,
-			message: response.ok ? `Sucessfully created table: ${dummyTable.name}` : await response.text()
+			message: response.ok ? `Sucessfully created table: ${form.data.name}` : await response.text()
 		};
 
 		console.log(result.message);
@@ -103,7 +73,12 @@ export const actions: Actions = {
 			result
 		};
 	},
-	insert_row: async ({ fetch }) => {
+	insert_row: async (event) => {
+		const form = await superValidate(event, columnSchema);
+		console.log('CREATE COLUMN');
+		console.log(form.data);
+
+		return;
 		const response = await fetch(`${BACKEND_URL}/rows`, {
 			method: 'POST',
 			body: JSON.stringify(newRow),
