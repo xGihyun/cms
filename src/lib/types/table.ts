@@ -1,5 +1,6 @@
 import z from 'zod';
 import { columnSchema, tableColumnInfo, tableSchema } from '$lib/schemas/table';
+import type { ComponentType } from 'svelte';
 
 export type TableSchema = typeof tableSchema;
 
@@ -17,4 +18,10 @@ export type ColumnInfo = {
 	data_type: string;
 	is_nullable: string;
 	character_maximum_length?: number;
+};
+
+export type DBDataType = {
+	name: string;
+	description: string;
+	icon?: ComponentType;
 };

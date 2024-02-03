@@ -1,3 +1,4 @@
+import { dataTypes } from '$lib';
 import z from 'zod';
 
 export const valueSchema: z.ZodType<unknown> = z.lazy(
@@ -9,9 +10,11 @@ export const valueSchema: z.ZodType<unknown> = z.lazy(
 export const columnSchema = z
 	.object({
 		name: z.string(),
-		data_type: z.string(),
+		data_type: z.string().refine((value) => dataTypes.some((dataType) => dataType.name === value)),
 		default: valueSchema.optional(),
-		is_nullable: z.boolean().default(false)
+		is_nullable: z.boolean().default(false),
+		is_primary_key: z.boolean().default(false),
+		is_unique: z.boolean().default(false)
 	})
 	.required({ name: true, data_type: true });
 

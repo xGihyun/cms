@@ -13,10 +13,11 @@
 	import type { TableColumnInfo } from '$lib/types/table';
 	import type { RequestStatus } from '$lib/types/result';
 
-	import { Footer as SheetFooter } from '$lib/components/ui/sheet';
+	import { Footer as SheetFooter, Close as SheetClose } from '$lib/components/ui/sheet';
 	import * as Form from '$lib/components/ui/form';
 	import { CheckCircled, CrossCircled } from 'radix-icons-svelte';
 	import { Button } from '$lib/components/ui/button';
+	import { Separator } from '$lib/components/ui/separator';
 	import TableFormColumns from './table-form-columns.svelte';
 
 	export let form: SuperValidated<TableSchema>;
@@ -43,7 +44,6 @@
 
 					if (result.type === 'success') {
 						toast(requestStatus.message, { icon: CheckCircled });
-						// await update();
 
 						return;
 					}
@@ -84,29 +84,24 @@
 	}}
 	let:config
 >
-	<Form.Field {config} name="name">
-		<Form.Item>
-			<Form.Label>Name</Form.Label>
-			<Form.Input required />
-			<Form.Validation />
-		</Form.Item>
-	</Form.Field>
+	<div class="p-6">
+		<Form.Field {config} name="name">
+			<Form.Item>
+				<Form.Label>Name</Form.Label>
+				<Form.Input required />
+				<Form.Validation />
+			</Form.Item>
+		</Form.Field>
+	</div>
+
+	<Separator class="my-5" />
 
 	<TableFormColumns />
 
-	<SheetFooter>
-		<Button type="submit">Submit</Button>
+	<SheetFooter class="p-6">
+		<SheetClose asChild let:builder>
+			<Button builders={[builder]} type="button" variant="secondary">Cancel</Button>
+		</SheetClose>
+		<Button type="submit">Save</Button>
 	</SheetFooter>
 </Form.Root>
-
-<!-- <form method="POST" action="?/create_table" use:enhance> -->
-<!-- 	{#each $bar.columns as _, i} -->
-<!-- 		<div> -->
-<!-- 			Column Name -->
-<!-- 			<Input bind:value={$bar.columns[i].name} /> -->
-<!-- 			Data Type -->
-<!-- 			<Input bind:value={$bar.columns[i].data_type} /> -->
-<!-- 		</div> -->
-<!-- 	{/each} -->
-<!-- 	<button>Submit</button> -->
-<!-- </form> -->
