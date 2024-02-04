@@ -5,7 +5,7 @@ import { errorCode } from '$lib/helpers';
 import type { HttpResult } from '$lib/types/result';
 
 export const DELETE: RequestHandler = async ({ fetch, url }) => {
-	const tableName = url.searchParams.get('name');
+	const tableNames = url.searchParams.get('names');
 
 	let result: HttpResult<undefined> = {
 		success: false,
@@ -13,12 +13,12 @@ export const DELETE: RequestHandler = async ({ fetch, url }) => {
 		message: 'Unexpected error.'
 	};
 
-	const response = await fetch(`${BACKEND_URL}/tables/${tableName}`, { method: 'DELETE' });
+	const response = await fetch(`${BACKEND_URL}/tables/${tableNames}`, { method: 'DELETE' });
 
 	result = {
 		success: response.ok,
 		code: response.status,
-		message: response.ok ? `Sucessfully deleted table: ${tableName}` : await response.text()
+		message: response.ok ? `Sucessfully deleted table: ${tableNames}` : await response.text()
 	};
 
 	console.log(result.message);

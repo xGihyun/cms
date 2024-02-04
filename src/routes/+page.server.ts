@@ -5,7 +5,7 @@ import { type Actions, fail } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { HttpResult } from '$lib/types/result';
 import { superValidate } from 'sveltekit-superforms/client';
-import { columnSchema, tableSchema } from '$lib/schemas/table';
+import { tableSchema } from '$lib/schemas/table';
 
 export const load: PageServerLoad = async ({ fetch }) => {
 	const response = await fetch(`${BACKEND_URL}/tables`, {
@@ -70,39 +70,6 @@ export const actions: Actions = {
 
 		return {
 			form,
-			result
-		};
-	},
-	insert_row: async (event) => {
-		const form = await superValidate(event, columnSchema);
-		console.log('CREATE COLUMN');
-		console.log(form.data);
-
-		return;
-		const response = await fetch(`${BACKEND_URL}/rows`, {
-			method: 'POST',
-			body: JSON.stringify(newRow),
-			headers: {
-				'content-type': 'application/json'
-			}
-		});
-
-		const result: HttpResult<TableColumnInfo[]> = {
-			success: response.ok,
-			code: response.status,
-			data: response.ok ? await response.json() : undefined,
-			message: response.ok ? `Sucessfully created row on ${newRow.table}` : await response.text()
-		};
-
-		console.log(result);
-
-		if (!result.success) {
-			return fail(result.code, {
-				result
-			});
-		}
-
-		return {
 			result
 		};
 	}

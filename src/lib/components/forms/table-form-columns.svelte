@@ -23,14 +23,16 @@
 			data_type: 'uuid',
 			is_nullable: false,
 			is_primary_key: true,
-			is_unique: true
+			is_unique: true,
+			default: 'gen_random_uuid()'
 		},
 		{
 			name: 'created_at',
 			data_type: 'timestamp',
 			is_nullable: false,
 			is_primary_key: false,
-			is_unique: false
+			is_unique: false,
+			default: 'now()'
 		}
 	];
 

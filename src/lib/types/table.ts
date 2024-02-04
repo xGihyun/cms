@@ -1,8 +1,9 @@
 import z from 'zod';
-import { columnSchema, tableColumnInfo, tableSchema } from '$lib/schemas/table';
+import { columnSchema, tableColumnInfo, tableSchema, valueSchema } from '$lib/schemas/table';
 import type { ComponentType } from 'svelte';
 
 export type TableSchema = typeof tableSchema;
+export type ValueSchema = typeof valueSchema;
 
 export type Column = z.infer<typeof columnSchema>;
 
@@ -20,7 +21,7 @@ export type ColumnInfo = {
 	character_maximum_length?: number;
 };
 
-export type DBDataType = {
+export type PGDataType = {
 	name: string;
 	description: string;
 	icon?: ComponentType;

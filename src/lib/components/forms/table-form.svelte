@@ -34,7 +34,7 @@
 			case 'success':
 			case 'failure':
 				{
-					const resultSchema = toHttpResult<TableColumnInfo>(tableColumnInfo);
+					const resultSchema = toHttpResult<TableColumnInfo[]>(tableColumnInfo.array());
 					const resultData = resultSchema.parse(result.data?.result);
 
 					requestStatus = {
