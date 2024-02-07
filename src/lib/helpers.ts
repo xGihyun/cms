@@ -1,5 +1,6 @@
 import type { TableColumnInfo, TableInfo } from '$lib/types/table';
 import type { NumericRange } from '@sveltejs/kit';
+import type { HTMLInputTypeAttribute } from 'svelte/elements';
 
 export function toTableInfo(tableColumns: TableColumnInfo[]): TableInfo[] {
 	const tableMap = new Map<string, TableInfo>();
@@ -32,4 +33,33 @@ export function resultMessage(message: string | undefined): string {
 	}
 
 	return message;
+}
+
+export function toColumn(obj: Record<string, any>) {
+	return Object.entries(obj).map(([key, value]) => ({ name: key, value }));
+}
+
+export function getInputType(data_type: string): HTMLInputTypeAttribute {
+	switch (data_type) {
+		case 'smallint':
+		case 'integer':
+		case 'bigint':
+		case 'real':
+		case 'double precision':
+		case 'numeric':
+			return 'number';
+		case 'text':
+		case 'uuid':
+		case 'boolean':
+			return 'text';
+		case 'date':
+		case 'timestamp without time zone':
+		case 'timestamp with time zone':
+			return 'date';
+		case 'time without time zone':
+		case 'time with time zone':
+			return 'time';
+		default:
+			return 'text';
+	}
 }

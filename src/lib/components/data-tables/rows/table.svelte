@@ -5,20 +5,19 @@
 	import * as Table from '$lib/components/ui/table';
 	import { DbRowTableSheet } from '.';
 	import { getContext } from 'svelte';
+	import type { TableColumnInfo } from '$lib/types/table';
 
-	const data = getContext<Record<string, any>[]>('data');
+	const rows = getContext<Record<string, any>[]>('rows');
+	const tableColumnInfos = getContext<TableColumnInfo[]>('columns');
 
-	$: table = createTable(readable(data));
-
-	$: columnNames = Object.keys(data[0]) || [];
-
+	$: table = createTable(readable(rows));
 	$: columns = table.createColumns([]);
 
 	$: initColumns = () => {
-		columnNames.forEach((col) => {
+		tableColumnInfos.forEach((col) => {
 			const newColumn = table.column({
-				accessor: col,
-				header: col
+				accessor: col.column_name,
+				header: col.is_primary_key ? `${col.column_name} (Primary Key)` : col.column_name
 			});
 
 			columns.push(newColumn);

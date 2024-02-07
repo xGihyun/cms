@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { DbRowTable } from '$lib/components/data-tables/rows';
-	import { valueSchema } from '$lib/schemas/table.js';
+	import { literalSchema } from '$lib/schemas/table.js';
 	import { setContext } from 'svelte';
 	import z from 'zod';
 
@@ -8,15 +8,16 @@
 
 	let schema = z.object({});
 
-	for (const key of Object.keys(data.rows[0])) {
+	for (const column of data.columns) {
 		schema = schema.extend({
-			[key]: valueSchema
+			[column.column_name]: literalSchema
 		});
 	}
 
 	setContext('form', data.form);
 	setContext('schema', schema);
-	setContext('data', data.rows);
+	// NOTE: Pass this as a prop instead if it needs to be a Promise
+	setContext('rows', data.rows);
 	setContext('columns', data.columns);
 </script>
 

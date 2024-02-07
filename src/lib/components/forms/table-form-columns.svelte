@@ -9,7 +9,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import * as Select from '$lib/components/ui/select';
-	import { dataTypes } from '$lib';
+	import { DB_DATA_TYPES } from '$lib';
 
 	const { form, submitting, delayed, errors, constraints } = getForm<TableSchema>();
 
@@ -24,15 +24,15 @@
 			is_nullable: false,
 			is_primary_key: true,
 			is_unique: true,
-			default: 'gen_random_uuid()'
+			default: DB_DATA_TYPES.get('uuid')?.default
 		},
 		{
 			name: 'created_at',
-			data_type: 'timestamp',
+			data_type: 'timestamp without time zone',
 			is_nullable: false,
 			is_primary_key: false,
 			is_unique: false,
-			default: 'now()'
+			default: DB_DATA_TYPES.get('timestamp without time zone')?.default
 		}
 	];
 
@@ -113,8 +113,11 @@
 							<Select.Value />
 						</Select.Trigger>
 						<Select.Content sameWidth={false}>
-							{#each dataTypes as dataType (dataType.name)}
-								<Select.Item value={dataType.name}>{dataType.name}</Select.Item>
+							{#each DB_DATA_TYPES as [key, value] (key)}
+								<Select.Item value={key}>
+									{key}
+								</Select.Item>
+								<!-- <span class="ml-4 text-muted-foreground/75">{value.description}</span> -->
 							{/each}
 						</Select.Content>
 					</Select.Root>
