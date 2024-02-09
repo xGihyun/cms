@@ -1,19 +1,12 @@
 import { DB_DATA_TYPES } from '$lib';
-import type { Json } from '$lib/types/table';
 import z from 'zod';
 
 export const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
-export const jsonSchema: z.ZodType<Json> = z.lazy(() =>
-	z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)])
-);
 
 export const columnSchema = z
 	.object({
 		name: z.string(),
 		data_type: z.string().refine((value) => {
-			// DB_DATA_TYPES.forEach((_, k) => {
-			// 	return k === value;
-			// });
 			for (const name of DB_DATA_TYPES.keys()) {
 				if (name === value) {
 					return true;
@@ -38,6 +31,7 @@ export const tableSchema = z
 export const tableColumnInfo = z.object({
 	table_name: z.string(),
 	column_name: z.string(),
+	column_default: z.string().optional(),
 	data_type: z.string(),
 	is_nullable: z.string(),
 	character_maximum_length: z.number().nullable(),

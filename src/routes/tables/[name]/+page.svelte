@@ -10,15 +10,15 @@
 
 	for (const column of data.columns) {
 		schema = schema.extend({
-			[column.column_name]: literalSchema
+			[column.column_name]:
+				column.is_nullable || column.column_default ? literalSchema.optional() : literalSchema
 		});
 	}
 
+	setContext('table', data.table);
 	setContext('form', data.form);
 	setContext('schema', schema);
-	// NOTE: Pass this as a prop instead if it needs to be a Promise
-	setContext('rows', data.rows);
 	setContext('columns', data.columns);
 </script>
 
-<DbRowTable />
+<DbRowTable rows={data.rows} />

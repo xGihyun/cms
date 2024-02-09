@@ -62,7 +62,7 @@ export const DB_DATA_TYPES: DBDataType = new Map([
 		'date',
 		{
 			description: 'Calendar date (year, month, day)',
-			inputType: 'date'
+			inputType: 'text'
 		}
 	],
 	[
@@ -70,7 +70,7 @@ export const DB_DATA_TYPES: DBDataType = new Map([
 		{
 			alias: 'time',
 			description: 'Time of the day (no timezone)',
-			inputType: 'time',
+			inputType: 'text',
 			default: 'now()'
 		}
 	],
@@ -79,7 +79,7 @@ export const DB_DATA_TYPES: DBDataType = new Map([
 		{
 			alias: 'timetz',
 			description: 'Time of the day, including timezone',
-			inputType: 'time',
+			inputType: 'text',
 			default: 'now()'
 		}
 	],
@@ -88,7 +88,7 @@ export const DB_DATA_TYPES: DBDataType = new Map([
 		{
 			alias: 'timestamp',
 			description: 'Date and time (no timezone)',
-			inputType: 'date',
+			inputType: 'text',
 			default: 'now()'
 		}
 	],
@@ -97,7 +97,7 @@ export const DB_DATA_TYPES: DBDataType = new Map([
 		{
 			alias: 'timestamptz',
 			description: 'Date and time, including timezone',
-			inputType: 'date',
+			inputType: 'text',
 			default: 'now()'
 		}
 	],

@@ -89,7 +89,13 @@
 						{#each row.cells as cell (cell.id)}
 							<Subscribe attrs={cell.attrs()} let:attrs>
 								<Table.Cell {...attrs}>
-									<Render of={cell.render()} />
+									{#if cell.id === 'Name'}
+										<a href={`tables/${cell.row.original.name}`} class="hover:underline">
+											<Render of={cell.render()} />
+										</a>
+									{:else}
+										<Render of={cell.render()} />
+									{/if}
 								</Table.Cell>
 							</Subscribe>
 						{/each}

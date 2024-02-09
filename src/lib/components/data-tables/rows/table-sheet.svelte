@@ -2,9 +2,15 @@
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { Button } from '$lib/components/ui/button';
 	import { DbRowTableForm } from '.';
+	import { setContext } from 'svelte';
+	import { writable } from 'svelte/store';
+
+	const sheetOpen = writable<boolean>(false);
+
+	setContext('sheetOpen', sheetOpen);
 </script>
 
-<Sheet.Root>
+<Sheet.Root bind:open={$sheetOpen}>
 	<Sheet.Trigger asChild let:builder>
 		<Button builders={[builder]}>New</Button>
 	</Sheet.Trigger>

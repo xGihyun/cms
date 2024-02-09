@@ -7,8 +7,9 @@
 	import { getContext } from 'svelte';
 	import type { TableColumnInfo } from '$lib/types/table';
 
-	const rows = getContext<Record<string, any>[]>('rows');
-	const tableColumnInfos = getContext<TableColumnInfo[]>('columns');
+	export let rows: Record<string, any>[];
+
+	$: tableColumnInfos = getContext<TableColumnInfo[]>('columns');
 
 	$: table = createTable(readable(rows));
 	$: columns = table.createColumns([]);

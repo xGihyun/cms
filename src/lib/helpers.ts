@@ -39,8 +39,8 @@ export function toColumn(obj: Record<string, any>) {
 	return Object.entries(obj).map(([key, value]) => ({ name: key, value }));
 }
 
-export function getInputType(data_type: string): HTMLInputTypeAttribute {
-	switch (data_type) {
+export function getInputType(dataType: string): HTMLInputTypeAttribute {
+	switch (dataType) {
 		case 'smallint':
 		case 'integer':
 		case 'bigint':

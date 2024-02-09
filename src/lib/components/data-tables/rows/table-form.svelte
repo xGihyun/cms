@@ -16,10 +16,13 @@
 	import { CheckCircled, CrossCircled } from 'radix-icons-svelte';
 	import { toast } from 'svelte-sonner';
 	import { undefined } from 'zod';
+	import type { Writable } from 'svelte/store';
 
 	const form = getContext<SuperValidated<AnyZodObject>>('form');
 	const schema = getContext<AnyZodObject>('schema');
 	const columns = getContext<TableColumnInfo[]>('columns');
+	const currentTable = getContext<string>('table');
+	const sheetOpen = getContext<Writable<boolean>>('sheetOpen');
 
 	let requestStatus: RequestStatus = {
 		type: 'none',
@@ -36,7 +39,6 @@
 					const resultSchema = toHttpResult<undefined>(undefined());
 					const resultData = resultSchema.parse(result.data?.result);
 
-					console.log(resultSchema);
 					console.log(resultData);
 
 					requestStatus = {
@@ -46,6 +48,7 @@
 
 					if (result.type === 'success') {
 						toast(requestStatus.message, { icon: CheckCircled });
+						$sheetOpen = false;
 
 						return;
 					}
@@ -74,34 +77,55 @@
 
 <Form.Root
 	method="POST"
-	action="?/insert_row&table=test"
+	action={`?/insert_row&table=${currentTable}`}
 	{form}
 	{schema}
 	options={{
 		clearOnSubmit: 'none',
 		delayMs: 500,
+		onSubmit: ({ formData }) => {
+			console.log(formData);
+
+			columns.forEach((column) => {
+				const columnValue = formData.get(column.column_name);
+
+				if (!columnValue && column.column_default) {
+					formData.set(column.column_name, column.column_default);
+				}
+			});
+
+			// console.log(formData);
+			toast(`Creating new row...`);
+		},
 		onResult: ({ result }) => {
 			processResult(result);
-		},
-		onSubmit: () => {
-			toast(`Creating new row...`);
 		}
 	}}
 	let:config
 >
-	{#each columns as column (column.column_name)}
-		<Form.Field {config} name={column.column_name}>
-			<Form.Item>
-				<Form.Label>{column.column_name}</Form.Label>
-				<Form.Description>{column.data_type}</Form.Description>
-				<Form.Input
-					type={DB_DATA_TYPES.get(column.data_type)?.inputType}
-					value={column.is_primary_key ? DB_DATA_TYPES.get(column.data_type)?.default : ''}
-				/>
-				<Form.Validation />
-			</Form.Item>
-		</Form.Field>
-	{/each}
+	<div class="p-6">
+		{#each columns as column (column.column_name)}
+			<Form.Field {config} name={column.column_name}>
+				<Form.Item class="grid grid-cols-3">
+					<div class="col-span-1">
+						<Form.Label>{column.column_name}</Form.Label>
+						<Form.Description>{column.data_type}</Form.Description>
+					</div>
+					{#if column.data_type === 'text'}
+						<Form.Textarea class="col-span-2 h-28" />
+					{:else}
+						<Form.Input
+							class="col-span-2"
+							type="text"
+							placeholder={column.column_default ? `Default: ${column.column_default}` : null}
+							aria-required="false"
+						/>
+					{/if}
+					<Form.Validation />
+				</Form.Item>
+			</Form.Field>
+		{/each}
+	</div>
 
 	<SheetFooter class="p-6">
 		<SheetClose asChild let:builder>

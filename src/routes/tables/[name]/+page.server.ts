@@ -19,11 +19,13 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
 
 	const tableColumnInfo: TableColumnInfo[] = await response.json();
 
-	console.log(tableColumnInfo);
+	// console.log(tableColumnInfo);
+	schema = z.object({});
 
 	for (const column of tableColumnInfo) {
 		schema = schema.extend({
-			[column.column_name]: literalSchema
+			[column.column_name]:
+				column.is_nullable || column.column_default ? literalSchema.optional() : literalSchema
 		});
 	}
 
@@ -40,7 +42,8 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
 	return {
 		form: await superValidate(schema),
 		rows: await getRows(),
-		columns: tableColumnInfo
+		columns: tableColumnInfo,
+		table: name
 	};
 };
 
