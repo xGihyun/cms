@@ -3,35 +3,31 @@ import z from 'zod';
 
 export const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 
-export const columnSchema = z
-	.object({
-		name: z.string(),
-		data_type: z.string().refine((value) => {
-			for (const name of DB_DATA_TYPES.keys()) {
-				if (name === value) {
-					return true;
-				}
+export const columnSchema = z.object({
+	name: z.string(),
+	data_type: z.string().refine((value) => {
+		for (const name of DB_DATA_TYPES.keys()) {
+			if (name === value) {
+				return true;
 			}
-			return false;
-		}),
-		default: literalSchema.optional(),
-		is_nullable: z.boolean().default(false),
-		is_primary_key: z.boolean().default(false),
-		is_unique: z.boolean().default(false)
-	})
-	.required({ name: true, data_type: true });
+		}
+		return false;
+	}),
+	default: literalSchema.optional(),
+	is_nullable: z.boolean().default(false),
+	is_primary_key: z.boolean().default(false),
+	is_unique: z.boolean().default(false)
+});
 
-export const tableSchema = z
-	.object({
-		name: z.string().max(63),
-		columns: columnSchema.array()
-	})
-	.required({ name: true, columns: true });
+export const tableSchema = z.object({
+	name: z.string().max(63),
+	columns: columnSchema.array()
+});
 
 export const tableColumnInfo = z.object({
 	table_name: z.string(),
 	column_name: z.string(),
-	column_default: z.string().optional(),
+	column_default: z.string().nullable(),
 	data_type: z.string(),
 	is_nullable: z.string(),
 	character_maximum_length: z.number().nullable(),

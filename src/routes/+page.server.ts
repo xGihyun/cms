@@ -72,5 +72,68 @@ export const actions: Actions = {
 			form,
 			result
 		};
+	},
+	edit_table: async (event) => {
+		const form = await superValidate(event, tableSchema);
+
+		const tableName = event.url.searchParams.get('name');
+
+		console.log('UPDATE TABLE');
+		console.log(form.data);
+
+		let result: HttpResult<TableColumnInfo[]> = {
+			success: false,
+			code: 500,
+			message: 'Unexpected error.'
+		};
+
+		if (!tableName) {
+			result.message = 'Table not found.';
+			result.code = 404;
+
+			return fail(result.code, {
+				form,
+				result
+			});
+		}
+
+		if (!form.valid) {
+			result.message = 'Invalid form data.';
+			result.code = 400;
+
+			return fail(400, {
+				form,
+				result
+			});
+		}
+
+		const response = await event.fetch(`${BACKEND_URL}/tables/${tableName}`, {
+			method: 'PATCH',
+			body: JSON.stringify(form.data.columns),
+			headers: {
+				'content-type': 'application/json'
+			}
+		});
+
+		result = {
+			success: response.ok,
+			code: response.status,
+			// data: response.ok ? await response.json() : undefined,
+			message: response.ok ? `Sucessfully updated table: ${form.data.name}` : await response.text()
+		};
+
+		console.log(result.message);
+
+		if (!result.success) {
+			return fail(result.code, {
+				form,
+				result
+			});
+		}
+
+		return {
+			form,
+			result
+		};
 	}
 };

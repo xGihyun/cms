@@ -31,15 +31,15 @@ export const DB_DATA_TYPES: DBDataType = new Map([
 		'real',
 		{
 			alias: 'float4',
-			description: 'Single precision floating-point number',
+			description: 'Single precision floating-point number (4 bytes)',
 			inputType: 'text'
 		}
 	],
 	[
-		'numeric',
+		'double precision',
 		{
-			alias: 'decimal',
-			description: 'Exact numeric of selectable precision',
+			alias: 'float8',
+			description: 'Double precision floating-point number (8 bytes)',
 			inputType: 'text'
 		}
 	],

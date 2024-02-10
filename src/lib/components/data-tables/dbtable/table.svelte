@@ -1,17 +1,21 @@
 <script lang="ts">
 	import { readable } from 'svelte/store';
 	import { createRender, createTable, Render, Subscribe } from 'svelte-headless-table';
-	import { addSelectedRows } from 'svelte-headless-table/plugins';
+	import { addSelectedRows, addTableFilter } from 'svelte-headless-table/plugins';
 
 	import type { TableInfo } from '$lib/types/table';
 
 	import * as Table from '$lib/components/ui/table';
-	import { DbTableCheckbox, DbTableSheet } from '.';
+	import { Input } from '$lib/components/ui/input';
+	import { DbTableCheckbox, DbTableSheet, DbTableActions } from '.';
 
 	export let data: TableInfo[];
 
 	$: table = createTable(readable(data), {
-		select: addSelectedRows()
+		select: addSelectedRows(),
+		filter: addTableFilter({
+			fn: ({ filterValue, value }) => value.toLowerCase().includes(filterValue.toLowerCase())
+		})
 	});
 
 	$: columns = table.createColumns([
@@ -30,6 +34,11 @@
 				return createRender(DbTableCheckbox, {
 					checked: isSelected
 				});
+			},
+			plugins: {
+				filter: {
+					exclude: true
+				}
 			}
 		}),
 		table.column({
@@ -38,13 +47,26 @@
 		}),
 		table.column({
 			accessor: 'column_count',
-			header: 'Columns'
+			header: 'Columns',
+			plugins: {
+				filter: {
+					exclude: true
+				}
+			}
+		}),
+		table.column({
+			accessor: ({ name }) => name,
+			header: '',
+			cell: ({ value }) => {
+				return createRender(DbTableActions, { tableName: value });
+			}
 		})
 	]);
 
 	$: ({ headerRows, pageRows, tableAttrs, tableBodyAttrs, pluginStates } =
 		table.createViewModel(columns));
 	$: ({ selectedDataIds } = pluginStates.select);
+	$: ({ filterValue } = pluginStates.filter);
 
 	$: selectedTables = [] as string[];
 
@@ -63,7 +85,11 @@
 	$: addSelectedTables();
 </script>
 
-<DbTableSheet tables={selectedTables} />
+<div class="flex items-center justify-between pb-4">
+	<Input class="max-w-sm" placeholder="Filter tables..." type="text" bind:value={$filterValue} />
+
+	<DbTableSheet tables={selectedTables} />
+</div>
 
 <div class="rounded-md border">
 	<Table.Root {...$tableAttrs}>
@@ -93,6 +119,10 @@
 										<a href={`tables/${cell.row.original.name}`} class="hover:underline">
 											<Render of={cell.render()} />
 										</a>
+									{:else if cell.id === ''}
+										<div class="text-right">
+											<Render of={cell.render()} />
+										</div>
 									{:else}
 										<Render of={cell.render()} />
 									{/if}
@@ -106,7 +136,9 @@
 	</Table.Root>
 </div>
 
-<div class="mt-4 flex-1 text-sm text-muted-foreground">
-	{selectedTables.length} of{' '}
-	{$pageRows.length} row(s) selected.
-</div>
+{#if selectedTables.length > 0}
+	<div class="mt-4 flex-1 text-sm text-muted-foreground">
+		{selectedTables.length} of{' '}
+		{$pageRows.length} row(s) selected.
+	</div>
+{/if}

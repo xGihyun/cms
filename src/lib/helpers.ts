@@ -1,4 +1,4 @@
-import type { TableColumnInfo, TableInfo } from '$lib/types/table';
+import type { InsertOnColumn, TableColumnInfo, TableInfo } from '$lib/types/table';
 import type { NumericRange } from '@sveltejs/kit';
 import type { HTMLInputTypeAttribute } from 'svelte/elements';
 
@@ -35,8 +35,33 @@ export function resultMessage(message: string | undefined): string {
 	return message;
 }
 
-export function toColumn(obj: Record<string, any>) {
-	return Object.entries(obj).map(([key, value]) => ({ name: key, value }));
+export function toColumn(
+	data: Record<string, any>,
+	tableColumnInfos: TableColumnInfo[]
+): InsertOnColumn[] {
+	const foo = tableColumnInfos.map((column) => {
+		const columnValue = data[column.column_name];
+
+		if (!columnValue && column.column_default) {
+			data[column.column_name] = column.column_default;
+			return {
+				name: column.column_name,
+				value: column.column_default,
+				is_db_expression: true
+			};
+		}
+
+		return {
+			name: column.column_name,
+			value: columnValue,
+			is_db_expression: false
+		};
+	});
+
+	console.log('TO COLUMN FUNCTION');
+	console.log(foo);
+
+	return foo;
 }
 
 export function getInputType(dataType: string): HTMLInputTypeAttribute {

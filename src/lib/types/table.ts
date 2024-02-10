@@ -14,14 +14,20 @@ export type TableSchema = typeof tableSchema;
 export type Literal = z.infer<typeof literalSchema>;
 export type Json = Literal | { [key: string]: Json } | Json[];
 
-export type Column = z.infer<typeof columnSchema>;
+export type BuildColumn = z.infer<typeof columnSchema>;
+
+export type InsertOnColumn = {
+	name: string;
+	value: Literal;
+	is_db_expression: bool;
+};
 
 export type TableInfo = {
 	name: string;
 	column_count: number;
 };
 
-export type TableColumnInfo = z.infer<typeof tableColumnInfo>;
+export type TableColumnInfo = z.input<typeof tableColumnInfo>;
 
 export type DBDataTypeValue = {
 	description: string;

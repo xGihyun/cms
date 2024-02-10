@@ -8,7 +8,6 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import { Footer as SheetFooter, Close as SheetClose } from '$lib/components/ui/sheet';
 	import { Button } from '$lib/components/ui/button';
-	import { DB_DATA_TYPES } from '$lib';
 	import type { ActionResult } from '@sveltejs/kit';
 	import type { RequestStatus } from '$lib/types/result';
 	import { toHttpResult } from '$lib/schemas/result';
@@ -81,20 +80,10 @@
 	{form}
 	{schema}
 	options={{
+		dataType: 'form',
 		clearOnSubmit: 'none',
 		delayMs: 500,
-		onSubmit: ({ formData }) => {
-			console.log(formData);
-
-			columns.forEach((column) => {
-				const columnValue = formData.get(column.column_name);
-
-				if (!columnValue && column.column_default) {
-					formData.set(column.column_name, column.column_default);
-				}
-			});
-
-			// console.log(formData);
+		onSubmit: () => {
 			toast(`Creating new row...`);
 		},
 		onResult: ({ result }) => {
@@ -105,6 +94,8 @@
 >
 	<div class="p-6">
 		{#each columns as column (column.column_name)}
+			{@const required = column.is_nullable === 'YES' || column.column_default ? false : true}
+
 			<Form.Field {config} name={column.column_name}>
 				<Form.Item class="grid grid-cols-3">
 					<div class="col-span-1">
@@ -112,13 +103,17 @@
 						<Form.Description>{column.data_type}</Form.Description>
 					</div>
 					{#if column.data_type === 'text'}
-						<Form.Textarea class="col-span-2 h-28" />
+						<Form.Textarea
+							class="col-span-2 h-28"
+							placeholder={column.column_default ? `Default: ${column.column_default}` : null}
+							{required}
+						/>
 					{:else}
 						<Form.Input
 							class="col-span-2"
 							type="text"
 							placeholder={column.column_default ? `Default: ${column.column_default}` : null}
-							aria-required="false"
+							{required}
 						/>
 					{/if}
 					<Form.Validation />

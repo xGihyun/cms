@@ -6,7 +6,7 @@
 	import { toast } from 'svelte-sonner';
 	import { invalidateAll } from '$app/navigation';
 	import type { HttpResult, RequestStatus } from '$lib/types/result.js';
-	import { CheckCircled, CrossCircled } from 'radix-icons-svelte';
+	import { CheckCircled, CrossCircled, Plus, Trash } from 'radix-icons-svelte';
 	import type { SuperValidated } from 'sveltekit-superforms';
 	import type { TableSchema } from '$lib/types/table';
 	import { getContext } from 'svelte';
@@ -53,13 +53,19 @@
 </script>
 
 {#if tables.length > 0}
-	<Button on:click={deleteTable}>Delete</Button>
+	<Button class="flex items-center gap-1" on:click={deleteTable}>
+		<Trash />
+		Delete
+	</Button>
 {:else}
 	<Sheet.Root>
 		<Sheet.Trigger asChild let:builder>
-			<Button builders={[builder]}>New</Button>
+			<Button builders={[builder]} class="flex items-center gap-1">
+				<Plus />
+				New
+			</Button>
 		</Sheet.Trigger>
-		<Sheet.Content class="w-full p-0 sm:max-w-xl">
+		<Sheet.Content class="w-full p-0 sm:max-w-2xl">
 			<Sheet.Header class="p-6">
 				<Sheet.Title>Create a New Table</Sheet.Title>
 			</Sheet.Header>

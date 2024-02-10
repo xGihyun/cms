@@ -30,7 +30,9 @@
 	$: ({ headerRows, pageRows, tableAttrs, tableBodyAttrs } = table.createViewModel(columns));
 </script>
 
-<DbRowTableSheet />
+<div class="flex items-center justify-between pb-4">
+	<DbRowTableSheet />
+</div>
 
 <div class="rounded-md border">
 	<Table.Root {...$tableAttrs}>
@@ -56,7 +58,13 @@
 						{#each row.cells as cell (cell.id)}
 							<Subscribe attrs={cell.attrs()} let:attrs>
 								<Table.Cell {...attrs}>
-									<Render of={cell.render()} />
+									{#if !cell.value}
+										<div class="text-muted-foreground">
+											<Render of={cell.render()} />
+										</div>
+									{:else}
+										<Render of={cell.render()} />
+									{/if}
 								</Table.Cell>
 							</Subscribe>
 						{/each}

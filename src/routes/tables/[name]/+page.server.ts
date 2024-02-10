@@ -9,6 +9,7 @@ import type { HttpResult } from '$lib/types/result';
 import { toColumn } from '$lib/helpers';
 
 let schema = z.object({});
+let tableColumnInfos: TableColumnInfo[] = [];
 
 export const load: PageServerLoad = async ({ fetch, params }) => {
 	const { name } = params;
@@ -17,15 +18,18 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
 		method: 'GET'
 	});
 
-	const tableColumnInfo: TableColumnInfo[] = await response.json();
+	tableColumnInfos = [];
+	tableColumnInfos = await response.json();
 
-	// console.log(tableColumnInfo);
+	console.log(tableColumnInfos);
 	schema = z.object({});
 
-	for (const column of tableColumnInfo) {
+	for (const column of tableColumnInfos) {
 		schema = schema.extend({
 			[column.column_name]:
-				column.is_nullable || column.column_default ? literalSchema.optional() : literalSchema
+				column.is_nullable === 'YES' || column.column_default
+					? literalSchema.optional()
+					: literalSchema
 		});
 	}
 
@@ -42,7 +46,7 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
 	return {
 		form: await superValidate(schema),
 		rows: await getRows(),
-		columns: tableColumnInfo,
+		columns: tableColumnInfos,
 		table: name
 	};
 };
@@ -50,8 +54,6 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
 export const actions: Actions = {
 	insert_row: async (event) => {
 		const form = await superValidate(event, schema);
-
-		console.log(form.data);
 
 		const table = event.url.searchParams.get('table');
 
@@ -81,16 +83,14 @@ export const actions: Actions = {
 			});
 		}
 
-		const row = {
+		const rowsToInsert = {
 			table,
-			columns: toColumn(form.data)
+			columns: toColumn(form.data, tableColumnInfos)
 		};
-
-		console.log(row);
 
 		const response = await event.fetch(`${BACKEND_URL}/rows`, {
 			method: 'POST',
-			body: JSON.stringify(row),
+			body: JSON.stringify(rowsToInsert),
 			headers: {
 				'content-type': 'application/json'
 			}

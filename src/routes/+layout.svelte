@@ -6,6 +6,8 @@
 
 <Toaster closeButton />
 <Sidebar />
-<main class="pl-72">
-	<slot />
-</main>
+<div class="pl-72">
+	<main class="px-[5%] py-10">
+		<slot />
+	</main>
+</div>
