@@ -21,7 +21,6 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
 	tableColumnInfos = [];
 	tableColumnInfos = await response.json();
 
-	console.log(tableColumnInfos);
 	schema = z.object({});
 
 	for (const column of tableColumnInfos) {

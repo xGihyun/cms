@@ -19,7 +19,7 @@
 
 	const form = getContext<SuperValidated<AnyZodObject>>('form');
 	const schema = getContext<AnyZodObject>('schema');
-	const columns = getContext<TableColumnInfo[]>('columns');
+	const columns = getContext<Writable<TableColumnInfo[]>>('columns');
 	const currentTable = getContext<string>('table');
 	const sheetOpen = getContext<Writable<boolean>>('sheetOpen');
 
@@ -93,7 +93,7 @@
 	let:config
 >
 	<div class="p-6">
-		{#each columns as column (column.column_name)}
+		{#each $columns as column (column.column_name)}
 			{@const required = column.is_nullable === 'YES' || column.column_default ? false : true}
 
 			<Form.Field {config} name={column.column_name}>

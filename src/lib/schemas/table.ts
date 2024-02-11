@@ -24,6 +24,14 @@ export const tableSchema = z.object({
 	columns: columnSchema.array()
 });
 
+export const editColumnSchema = columnSchema.extend({
+	state: z.enum(['added', 'removed', 'unchanged', 'modified']).default('unchanged')
+});
+
+export const editTableSchema = tableSchema.extend({
+	columns: editColumnSchema.array()
+});
+
 export const tableColumnInfo = z.object({
 	table_name: z.string(),
 	column_name: z.string(),

@@ -2,7 +2,7 @@
 	import { getForm } from 'formsnap';
 	import { toast } from 'svelte-sonner';
 
-	import type { BuildColumn, TableColumnInfo, TableSchema } from '$lib/types/table';
+	import type { BuildColumn, EditColumn, EditTableSchema, TableColumnInfo } from '$lib/types/table';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Cross2 } from 'radix-icons-svelte';
@@ -13,22 +13,22 @@
 	import type { Selected } from 'bits-ui';
 	import { getContext } from 'svelte';
 
-	const { form, submitting, delayed, errors, constraints } = getForm<TableSchema>();
+	const { form, submitting, delayed, errors, constraints } = getForm<EditTableSchema>();
 
 	export let mode: 'new' | 'edit';
 	export let tableColumnInfos: TableColumnInfo[] = [];
 
 	const tableName = getContext<string | undefined>('tableName');
 
-	$: console.log(mode);
-	$: console.log(tableName);
-	$: console.log(tableColumnInfos);
-
 	$: if ($submitting && $delayed && !$errors) {
 		toast(`Creating table: ${$form.name}`);
 	}
 
-	let selectedDataType: Selected<string | undefined>[] = [];
+	interface SelectedWithState<T> extends Selected<T> {
+		state: 'added' | 'removed' | 'unchanged' | 'modified';
+	}
+
+	let selectedDataType: SelectedWithState<string | undefined>[] = [];
 
 	if (mode === 'edit') {
 		$form.name = tableName || '';
@@ -41,10 +41,11 @@
 					is_nullable: is_nullable === 'NO' ? false : true,
 					data_type,
 					name: column_name,
-					default: column_default
+					default: column_default,
+					state: 'unchanged'
 				});
 
-				selectedDataType.push({ value: data_type, label: data_type });
+				selectedDataType.push({ value: data_type, label: data_type, state: 'unchanged' });
 			}
 		);
 	} else {
@@ -55,7 +56,8 @@
 				is_nullable: false,
 				is_primary_key: true,
 				is_unique: true,
-				default: DB_DATA_TYPES.get('uuid')?.default
+				default: DB_DATA_TYPES.get('uuid')?.default,
+				state: 'added'
 			},
 			{
 				name: 'created_at',
@@ -63,29 +65,33 @@
 				is_nullable: false,
 				is_primary_key: false,
 				is_unique: false,
-				default: DB_DATA_TYPES.get('timestamp without time zone')?.default
+				default: DB_DATA_TYPES.get('timestamp without time zone')?.default,
+				state: 'added'
 			}
-		] satisfies BuildColumn[];
+		] satisfies EditColumn[];
 
 		selectedDataType = [
 			{
 				value: $form.columns[0].data_type,
-				label: $form.columns[0].data_type
+				label: $form.columns[0].data_type,
+				state: $form.columns[0].state
 			},
 			{
 				value: $form.columns[1].data_type,
-				label: $form.columns[1].data_type
+				label: $form.columns[1].data_type,
+				state: $form.columns[1].state
 			}
 		];
 	}
 
 	function addColumn(): void {
-		const newColumn: BuildColumn = {
+		const newColumn: EditColumn = {
 			name: '',
-			data_type: '',
+			data_type: '---',
 			is_nullable: false,
 			is_primary_key: false,
-			is_unique: false
+			is_unique: false,
+			state: 'added'
 		};
 
 		form.update(($form) => {
@@ -94,24 +100,35 @@
 			return $form;
 		});
 
-		selectedDataType.push({ value: undefined });
+		selectedDataType.push({ value: undefined, state: 'added' });
 	}
 
-	function deleteColumn(index: number): void {
+	function deleteColumn(idx: number): void {
 		form.update(($form) => {
-			$form.columns.splice(index, 1);
+			const column = $form.columns[idx];
+
+			if (column.state === 'unchanged') {
+				column.state = 'removed';
+				// selectedDataType[idx].state = 'removed';
+
+				if (idx < selectedDataType.length - 1) {
+					selectedDataType[idx].value = selectedDataType[idx + 1].value;
+					selectedDataType[idx].label = selectedDataType[idx + 1].label;
+				}
+			} else {
+				$form.columns.splice(idx, 1);
+				selectedDataType.splice(idx, 1);
+			}
 
 			return $form;
 		});
-
-		selectedDataType.splice(index, 1);
 	}
 
-	function selectDataType(
+	$: selectDataType = (
 		selected: Selected<string | undefined> | undefined,
 		column: BuildColumn,
 		idx: number
-	): void {
+	): void => {
 		column.data_type = selected?.value || '---';
 
 		form.update(($form) => {
@@ -121,7 +138,7 @@
 
 			return $form;
 		});
-	}
+	};
 </script>
 
 <div class="p-6">
@@ -136,66 +153,68 @@
 		</div>
 
 		{#each $form.columns as column, idx (idx)}
-			{@const error = $errors?.columns?.[idx]}
+			{#if column.state !== 'removed'}
+				{@const error = $errors?.columns?.[idx]}
 
-			<div class="grid grid-cols-9 items-center gap-2">
-				<div class="col-span-2 space-y-2">
-					<Input bind:value={column.name} {...$constraints.columns?.name} />
-					{#if error?.name}
-						<p class="text-[0.8rem] font-medium text-destructive">
-							{error?.name}
-						</p>
-					{/if}
+				<div class="grid grid-cols-9 items-center gap-2">
+					<div class="col-span-2 space-y-2">
+						<Input bind:value={column.name} {...$constraints.columns?.name} />
+						{#if error?.name}
+							<p class="text-[0.8rem] font-medium text-destructive">
+								{error?.name}
+							</p>
+						{/if}
+					</div>
+
+					<div class="col-span-2 space-y-2">
+						<input bind:value={column.data_type} {...$constraints.columns?.data_type} hidden />
+
+						<Select.Root
+							{...$constraints.columns?.data_type}
+							required
+							bind:selected={selectedDataType[idx]}
+							onSelectedChange={(selected) => selectDataType(selected, column, idx)}
+						>
+							<Select.Trigger class={error?.data_type ? 'border-destructive/75' : ''}>
+								<Select.Value asChild placeholder="---" let:label>
+									<span>
+										{DB_DATA_TYPES.get(label)?.alias ? DB_DATA_TYPES.get(label)?.alias : label}
+									</span>
+								</Select.Value>
+							</Select.Trigger>
+							<Select.Content sameWidth={false}>
+								{#each DB_DATA_TYPES as [key, value] (key)}
+									{@const label = value.alias ? value.alias : key}
+
+									<Select.Item value={key} {label}>
+										{label}
+										<span class="ml-4 text-muted-foreground/75">{value.description}</span>
+									</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					</div>
+
+					<div class="col-span-2 space-y-2">
+						<Input
+							bind:value={column.default}
+							{...$constraints.columns?.default}
+							placeholder="NULL"
+						/>
+						{#if error?.default}
+							<p class="text-[0.8rem] font-medium text-destructive">
+								{error?.default}
+							</p>
+						{/if}
+					</div>
+
+					<Checkbox bind:checked={column.is_primary_key} />
+
+					<Button variant="ghost" size="icon" on:click={() => deleteColumn(idx)}>
+						<Cross2 />
+					</Button>
 				</div>
-
-				<div class="col-span-2 space-y-2">
-					<input bind:value={column.data_type} {...$constraints.columns?.data_type} hidden />
-
-					<Select.Root
-						{...$constraints.columns?.data_type}
-						required
-						bind:selected={selectedDataType[idx]}
-						onSelectedChange={(selected) => selectDataType(selected, column, idx)}
-					>
-						<Select.Trigger class={error?.data_type ? 'border-destructive/75' : ''}>
-							<Select.Value asChild placeholder="---" let:label>
-								<span>
-									{DB_DATA_TYPES.get(label)?.alias ? DB_DATA_TYPES.get(label)?.alias : label}
-								</span>
-							</Select.Value>
-						</Select.Trigger>
-						<Select.Content sameWidth={false}>
-							{#each DB_DATA_TYPES as [key, value] (key)}
-								{@const label = value.alias ? value.alias : key}
-
-								<Select.Item value={key} {label}>
-									{label}
-									<span class="ml-4 text-muted-foreground/75">{value.description}</span>
-								</Select.Item>
-							{/each}
-						</Select.Content>
-					</Select.Root>
-				</div>
-
-				<div class="col-span-2 space-y-2">
-					<Input
-						bind:value={column.default}
-						{...$constraints.columns?.default}
-						placeholder="NULL"
-					/>
-					{#if error?.default}
-						<p class="text-[0.8rem] font-medium text-destructive">
-							{error?.default}
-						</p>
-					{/if}
-				</div>
-
-				<Checkbox bind:checked={column.is_primary_key} />
-
-				<Button variant="ghost" on:click={() => deleteColumn(idx)}>
-					<Cross2 />
-				</Button>
-			</div>
+			{/if}
 		{/each}
 	</div>
 

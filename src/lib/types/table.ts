@@ -1,6 +1,8 @@
 import z from 'zod';
 import {
 	columnSchema,
+	editColumnSchema,
+	editTableSchema,
 	literalSchema,
 	tableColumnInfo,
 	tableSchema
@@ -10,16 +12,18 @@ import type { ComponentType } from 'svelte';
 import type { HTMLInputTypeAttribute } from 'svelte/elements';
 
 export type TableSchema = typeof tableSchema;
+export type EditTableSchema = typeof editTableSchema;
 
 export type Literal = z.infer<typeof literalSchema>;
 export type Json = Literal | { [key: string]: Json } | Json[];
 
 export type BuildColumn = z.infer<typeof columnSchema>;
+export type EditColumn = z.infer<typeof editColumnSchema>;
 
 export type InsertOnColumn = {
 	name: string;
 	value: Literal;
-	is_db_expression: bool;
+	is_db_expression: boolean;
 };
 
 export type TableInfo = {

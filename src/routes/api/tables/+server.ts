@@ -5,7 +5,7 @@ import { errorCode } from '$lib/helpers';
 import type { HttpResult } from '$lib/types/result';
 import type { TableColumnInfo } from '$lib/types/table';
 
-export const GET: RequestHandler = async ({ fetch, url }) => {
+export const GET: RequestHandler = async ({ fetch, url, setHeaders }) => {
 	const tableName = url.searchParams.get('name');
 
 	let result: HttpResult<TableColumnInfo[]> = {
@@ -28,6 +28,10 @@ export const GET: RequestHandler = async ({ fetch, url }) => {
 	if (!result.success) {
 		error(errorCode(result.code), result.message);
 	}
+
+	setHeaders({
+		'cache-control': 'no-cache'
+	});
 
 	return json(result);
 };

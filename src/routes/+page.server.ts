@@ -5,7 +5,7 @@ import { type Actions, fail } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { HttpResult } from '$lib/types/result';
 import { superValidate } from 'sveltekit-superforms/client';
-import { tableSchema } from '$lib/schemas/table';
+import { editTableSchema, tableSchema } from '$lib/schemas/table';
 
 export const load: PageServerLoad = async ({ fetch }) => {
 	const response = await fetch(`${BACKEND_URL}/tables`, {
@@ -74,7 +74,7 @@ export const actions: Actions = {
 		};
 	},
 	edit_table: async (event) => {
-		const form = await superValidate(event, tableSchema);
+		const form = await superValidate(event, editTableSchema);
 
 		const tableName = event.url.searchParams.get('name');
 
@@ -109,7 +109,7 @@ export const actions: Actions = {
 
 		const response = await event.fetch(`${BACKEND_URL}/tables/${tableName}`, {
 			method: 'PATCH',
-			body: JSON.stringify(form.data.columns),
+			body: JSON.stringify(form.data),
 			headers: {
 				'content-type': 'application/json'
 			}

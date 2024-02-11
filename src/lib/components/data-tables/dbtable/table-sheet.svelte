@@ -70,7 +70,7 @@
 				<Sheet.Title>Create a New Table</Sheet.Title>
 			</Sheet.Header>
 
-			<TableForm {form} />
+			<TableForm {form} mode="new" />
 		</Sheet.Content>
 	</Sheet.Root>
 {/if}

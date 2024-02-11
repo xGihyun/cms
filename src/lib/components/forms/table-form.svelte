@@ -5,7 +5,7 @@
 
 	import { resultMessage } from '$lib/helpers';
 
-	import { tableSchema } from '$lib/schemas/table';
+	import { editTableSchema, tableSchema } from '$lib/schemas/table';
 	import { toHttpResult } from '$lib/schemas/result';
 	import { tableColumnInfo } from '$lib/schemas/table';
 
@@ -93,7 +93,7 @@
 		<Form.Root
 			action={`?/edit_table&name=${tableName}`}
 			{form}
-			schema={tableSchema}
+			schema={editTableSchema}
 			options={{
 				dataType: 'json',
 				clearOnSubmit: 'none',
